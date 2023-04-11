@@ -21,6 +21,7 @@ type ClientAuthMessage struct {
 //获取信息，并根据传递的类型来判断是否可以使用鉴权方法，并回复信息
 func HadleAuthMessage(conn net.Conn, authType byte) error {
 	message, err := GetClientAuthMessage(conn)
+	log.Printf("分析出来的Auth信息是%#v", message)
 	if err != nil {
 		return nil
 	}
