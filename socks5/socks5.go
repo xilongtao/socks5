@@ -13,6 +13,7 @@ type SOCKS5Server struct {
 	Port int
 }
 
+//运行
 func (s *SOCKS5Server) Run() error {
 	address := fmt.Sprintf("%s:%d", s.Ip, s.Port)
 	listener, err := net.Listen("tcp", address)
@@ -44,10 +45,30 @@ func handleConnection(conn net.Conn) error {
 	if err != nil {
 		return nil
 	}
-	//判断校验方法方法是否可用
+	//校验用户名和密码
+	err = VerifyUsernamePassword(conn)
+	if err != nil {
+		log.Printf("validate username password error %s", err)
+		return writeMessage(conn, []byte{Socks5Version, 0x01})
+	}
 
 	//请求过程
 
 	//转发数据过程
 	return nil
+}
+
+//报告错误
+func reportErr(err error, desc string) error {
+	if err != nil {
+		log.Printf("%s %s", desc, err)
+		return err
+	}
+	return nil
+}
+
+//写入消息
+func writeMessage(conn net.Conn, message []byte) error {
+	_, err := conn.Write(message)
+	return err
 }

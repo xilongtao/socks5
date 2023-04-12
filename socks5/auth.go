@@ -21,7 +21,7 @@ type ClientAuthMessage struct {
 //获取信息，并根据传递的类型来判断是否可以使用鉴权方法，并回复信息
 func HadleAuthMessage(conn net.Conn, authType byte) error {
 	message, err := GetClientAuthMessage(conn)
-	log.Printf("分析出来的Auth信息是%#v", message)
+	log.Printf("子协商-授权报文信息是%#v", message)
 	if err != nil {
 		return nil
 	}
@@ -42,11 +42,6 @@ func HadleAuthMessage(conn net.Conn, authType byte) error {
 	//写入返回信息
 	message2 := []byte{Socks5Version, MethodUsernamePassword}
 	return writeMessage(conn, message2)
-}
-
-func writeMessage(conn net.Conn, message []byte) error {
-	_, err := conn.Write(message)
-	return err
 }
 
 //解析auth信息
@@ -74,4 +69,48 @@ func GetClientAuthMessage(conn net.Conn) (*ClientAuthMessage, error) {
 		Nmethods: nmethods,
 		Methods:  buf,
 	}, nil
+}
+
+//校验用户名和密码
+func VerifyUsernamePassword(conn net.Conn) error {
+	buf := make([]byte, 2)
+	//读取version和ulength
+	_, err := io.ReadFull(conn, buf)
+	if err != nil {
+		log.Printf("read username and password err %s", err)
+		return err
+	}
+	//读取用户名
+	usernameBuf := make([]byte, buf[1])
+	_, err = io.ReadFull(conn, usernameBuf)
+	if err != nil {
+		log.Printf("read username err %s", err)
+		return err
+	}
+	username := string(usernameBuf)
+	//读取plength
+	passwordLengthBuf := make([]byte, 1)
+	_, err = io.ReadFull(conn, passwordLengthBuf)
+	if err != nil {
+		log.Printf("read passwordLen err %s", err)
+		return err
+	}
+	//读取密码
+	passwordBuf := make([]byte, passwordLengthBuf[0])
+	_, err = io.ReadFull(conn, passwordBuf)
+	if err != nil {
+		log.Printf("read password err %s", err)
+		return err
+	}
+	password := string(passwordBuf)
+	log.Printf("子协商-授权报文用户名和密码为 username:%s, password:%s", username, password)
+	//比较用户名和密码是否正确
+	if username != "Test" || password != "Socks5" {
+		log.Printf("validate username and password err %s", err)
+		return errors.New("invalid username or password")
+	}
+	log.Printf("子协商-用户名密码验证成功，username & password validate success")
+	//返回数据
+	successMsg := []byte{Socks5Version, 0x00}
+	return writeMessage(conn, successMsg)
 }
