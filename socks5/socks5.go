@@ -1,3 +1,11 @@
+/*
+ * @Author: xlt
+ * @Date: 2023-04-12 13:23:03
+ * @LastEditors: xlt
+ * @LastEditTime: 2023-05-05 17:20:23
+ * @FilePath: /socks5/socks5/socks5.go
+ * @Description: socks5代理
+ */
 package socks5
 
 import (
@@ -52,18 +60,13 @@ func handleConnection(conn net.Conn) error {
 		return writeMessage(conn, []byte{Socks5Version, 0x01})
 	}
 
-	//请求过程
-
-	//转发数据过程
-	return nil
-}
-
-//报告错误
-func reportErr(err error, desc string) error {
+	//请求过程与转发数据过程
+	err = HandleConnectMessage(conn)
 	if err != nil {
-		log.Printf("%s %s", desc, err)
+		log.Printf("replay err %s", err)
 		return err
 	}
+
 	return nil
 }
 

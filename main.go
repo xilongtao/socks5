@@ -1,3 +1,11 @@
+/*
+ * @Author: xlt
+ * @Date: 2023-04-12 13:23:03
+ * @LastEditors: xlt
+ * @LastEditTime: 2023-05-05 17:26:27
+ * @FilePath: /socks5/main.go
+ * @Description:
+ */
 package main
 
 import (
@@ -10,6 +18,7 @@ func main() {
 		Ip:   "localhost",
 		Port: 9898,
 	}
+	log.Println("socks5 start")
 	err := socks5Server.Run()
 	if err != nil {
 		log.Printf("server start error %S", err)
