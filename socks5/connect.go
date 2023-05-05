@@ -2,7 +2,7 @@
  * @Author: xlt
  * @Date: 2023-05-05 13:02:14
  * @LastEditors: xlt
- * @LastEditTime: 2023-05-05 17:46:53
+ * @LastEditTime: 2023-05-05 18:59:27
  * @FilePath: /socks5/socks5/connect.go
  * @Description:
  */
@@ -75,7 +75,7 @@ func HandleConnectMessage(conn net.Conn) error {
 	destConn, err := net.Dial("tcp", destAddress)
 	if err != nil {
 		log.Printf("connect to remote address error %s", err)
-		return nil
+		return err
 	}
 	//告诉客户端已经准备好了；回传的address类型
 	_, err = conn.Write([]byte{Socks5Version, 0x00, 0x00, 0x01, 0, 0, 0, 0, 0, 0})
@@ -83,19 +83,12 @@ func HandleConnectMessage(conn net.Conn) error {
 		//关闭链接
 		destConn.Close()
 		log.Printf("write back connect response error %s", err)
-		return nil
+		return err
 	}
+	defer destConn.Close()
+	go io.Copy(destConn, conn)
 	//转发数据
-	go func() {
-		defer destConn.Close()
-		defer conn.Close()
-		io.Copy(destConn, conn)
-	}()
-	go func() {
-		defer destConn.Close()
-		defer conn.Close()
-		io.Copy(conn, destConn)
-	}()
+	io.Copy(conn, destConn)
 
 	return nil
 }

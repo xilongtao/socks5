@@ -2,7 +2,7 @@
  * @Author: xlt
  * @Date: 2023-04-12 13:23:03
  * @LastEditors: xlt
- * @LastEditTime: 2023-05-05 17:20:23
+ * @LastEditTime: 2023-05-05 18:11:01
  * @FilePath: /socks5/socks5/socks5.go
  * @Description: socks5代理
  */
@@ -51,7 +51,7 @@ func handleConnection(conn net.Conn) error {
 	//协商过程
 	err := HadleAuthMessage(conn, MethodUsernamePassword)
 	if err != nil {
-		return nil
+		return err
 	}
 	//校验用户名和密码
 	err = VerifyUsernamePassword(conn)
